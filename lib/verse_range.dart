@@ -17,7 +17,7 @@ class _VerseRangeScreenState extends State<VerseRangeScreen> {
   int _startVerse = 1;
   int _endVerse = 1;
   bool _isDownloading = false;
-
+  int _downloadedCount = 0;
   @override
   void initState() {
     super.initState();
@@ -61,28 +61,53 @@ class _VerseRangeScreenState extends State<VerseRangeScreen> {
               ],
             ),
             const Spacer(),
+
             ElevatedButton.icon(
               icon:
                   _isDownloading
-                      ? const CircularProgressIndicator()
+                      ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
                       : const Icon(Icons.download),
               label: Text(
-                _isDownloading ? 'Downloading...' : 'Download Recitation',
+                _isDownloading
+                    ? 'Downloading ($_downloadedCount/${_endVerse - _startVerse + 1})'
+                    : 'Download Recitation',
               ),
               onPressed:
                   _isDownloading
                       ? null
                       : () async {
-                        setState(() => _isDownloading = true);
-                        await DownloadService.downloadMishariRecitation(
-                          widget.surahNumber,
-                          _startVerse,
-                          _endVerse,
-                        );
+                        setState(() {
+                          _isDownloading = true;
+                          _downloadedCount = 0;
+                        });
+
+                        final total = _endVerse - _startVerse + 1;
+                        for (
+                          int verse = _startVerse;
+                          verse <= _endVerse;
+                          verse++
+                        ) {
+                          await DownloadService.downloadSingleVerse(
+                            widget.surahNumber,
+                            verse,
+                          );
+                          setState(() {
+                            _downloadedCount++;
+                          });
+                        }
+
                         setState(() => _isDownloading = false);
+
+                        if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Download started successfully!'),
+                            content: Text(
+                              'All verses downloaded successfully!',
+                            ),
                           ),
                         );
                       },

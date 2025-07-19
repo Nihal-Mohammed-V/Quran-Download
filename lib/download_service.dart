@@ -1,32 +1,28 @@
 // services/download_service.dart
 
+import 'dart:io';
+
 import 'package:flutter_downloader/flutter_downloader.dart';
-import 'package:path_provider/path_provider.dart';
+
 import 'package:permission_handler/permission_handler.dart';
 
 class DownloadService {
-  static const String _baseUrl =
-      'https://verses.quran.com/mishari_alafasy_audio/';
+  static const String _baseUrl = 'https://verses.quran.com/Alafasy/mp3/';
 
-  static Future<void> downloadMishariRecitation(
-    int surahNumber,
-    int startVerse,
-    int endVerse,
-  ) async {
-    // Check and request storage permission
+  static Future<void> downloadSingleVerse(int surahNumber, int verse) async {
     if (!await _checkPermission()) return;
 
-    // Get download directory
-    final dir = await getExternalStorageDirectory();
-    if (dir == null) return;
+    final dir = Directory('/storage/emulated/0/Download');
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
 
-    // Download each verse in the range
-    for (int verse = startVerse; verse <= endVerse; verse++) {
-      final verseStr = verse.toString().padLeft(3, '0');
-      final surahStr = surahNumber.toString().padLeft(3, '0');
-      final url = '$_baseUrl$surahStr/$surahStr$verseStr.mp3';
-      final fileName = 'Mishari_S${surahStr}_V$verseStr.mp3';
+    final verseStr = verse.toString().padLeft(3, '0');
+    final surahStr = surahNumber.toString().padLeft(3, '0');
+    final url = '$_baseUrl${surahStr}${verseStr}.mp3';
+    final fileName = 'Mishari_S${surahStr}_V$verseStr.mp3';
 
+    try {
       await FlutterDownloader.enqueue(
         url: url,
         savedDir: dir.path,
@@ -34,11 +30,16 @@ class DownloadService {
         showNotification: true,
         openFileFromNotification: true,
       );
+      print("Download enqueued");
+    } catch (e) {
+      print("Download failed: $e");
     }
   }
 
   static Future<bool> _checkPermission() async {
-    final status = await Permission.storage.request();
+    if (await Permission.storage.isGranted) return true;
+
+    final status = await Permission.manageExternalStorage.request();
     return status.isGranted;
   }
 }

@@ -1,5 +1,6 @@
 // main.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:quran_download/home_screen.dart';
 
@@ -8,7 +9,10 @@ void main() async {
   await Hive.initFlutter();
   await Hive.openBox('downloads');
   await Hive.openBox('bookmarks');
-
+  await FlutterDownloader.initialize(
+    debug: true, // set to false in production
+    ignoreSsl: true,
+  );
   runApp(const QuranMishariApp());
 }
 
