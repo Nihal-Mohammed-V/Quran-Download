@@ -1,20 +1,29 @@
+// main.dart
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:quran_download/home_screen.dart';
 
-void main() {
-  runApp(const MainApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+  await Hive.openBox('downloads');
+  await Hive.openBox('bookmarks');
+
+  runApp(const QuranMishariApp());
 }
 
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+class QuranMishariApp extends StatelessWidget {
+  const QuranMishariApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: Text('Hello World!'),
-        ),
+    return MaterialApp(
+      title: 'Quran Mishari Recitations',
+      theme: ThemeData(
+        primarySwatch: Colors.green,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
+      home: const HomeScreen(),
     );
   }
 }
